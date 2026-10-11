@@ -1,0 +1,27 @@
+# Build output and distribution packages
+dist/
+*.tar.gz
+*.wsl
+*.sbom.json
+*.sig
+*.sha256
+
+# Secrets and private keys
+.release/*.key
+.release/*.pem
+*.key
+*.pem
+*.pfx
+
+# Operating System and IDE files
+.DS_Store
+Thumbs.db
+*~
+*.swp
+*.swo
+.vscode/
+.idea/
+
+# Temporary and local test logs
+tmp/
+*.log
