@@ -42,7 +42,8 @@ cloud-distro/
 ├── Vagrantfile               # Isolated Ubuntu 24.04 VM builder environment
 ├── .dockerignore
 ├── .release/                 # committed immutable base/tool locks; no credentials
-├── rootfs/etc/{wsl.conf,wsl-distribution.conf,os-release,issue,motd}
+├── rootfs/etc/{wsl.conf,wsl-distribution.conf,os-release,issue,motd,godzilla.art}
+├── rootfs/etc/profile.d/{00-first-run.sh,99-daily-banner.sh}
 ├── rootfs/usr/lib/wsl/{cloud-distro.ico,terminal-profile.json}
 ├── rootfs/usr/libexec/cloud-distro-oobe
 ├── rootfs/etc/sudoers.d/cloud-distro
