@@ -20,8 +20,47 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          chmod +x build.sh rootfs/usr/libexec/cloud-distro-oobe
-          DIST_VERSION="${GITHUB_REF_NAME:-v0.1.0}" sudo -E ./build.sh
+          DIST_VERSION="${GITHUB_REF_NAME:-v0.1.0}"
+          TARGET_DIR="/tmp/clouddistro-rootfs"
+
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends debootstrap debian-archive-keyring tar gzip ca-certificates curl jq
+
+          sudo rm -rf "${TARGET_DIR}" && sudo mkdir -p "${TARGET_DIR}"
+          sudo debootstrap --arch=amd64 --variant=minbase --keyring=/usr/share/keyrings/debian-archive-keyring.gpg trixie "${TARGET_DIR}" http://deb.debian.org/debian/
+
+          sudo cp -r rootfs/* "${TARGET_DIR}/"
+          sudo chmod 0440 "${TARGET_DIR}/etc/sudoers.d/cloud-distro" 2>/dev/null || true
+          sudo chmod 0644 "${TARGET_DIR}/etc/wsl.conf" "${TARGET_DIR}/etc/wsl-distribution.conf" "${TARGET_DIR}/etc/godzilla.art" 2>/dev/null || true
+          sudo chmod 0755 "${TARGET_DIR}/etc/profile.d/"*.sh "${TARGET_DIR}/usr/libexec/cloud-distro-oobe" 2>/dev/null || true
+
+          sudo chroot "${TARGET_DIR}" /bin/bash << 'EOF'
+          set -euo pipefail
+          export DEBIAN_FRONTEND=noninteractive
+          apt-get update
+          apt-get install -y --no-install-recommends \
+              bash-completion ca-certificates curl dbus git gpg gzip iproute2 iputils-ping jq \
+              locales make openssh-client pipx python3 python3-pip sudo systemd systemd-sysv \
+              tmux tzdata unattended-upgrades unzip vim-tiny xz-utils zsh
+          sed -i 's/^# *C.UTF-8 UTF-8/C.UTF-8 UTF-8/' /etc/locale.gen && locale-gen
+          update-locale LANG=C.UTF-8 LC_ALL=C.UTF-8
+          systemctl mask getty@.service systemd-networkd-wait-online.service
+          truncate -s 0 /etc/machine-id
+          ln -sf /etc/machine-id /var/lib/dbus/machine-id
+          if [ ! -e /usr/bin/wslpath ]; then ln -s /init /usr/bin/wslpath; fi
+          visudo -cf /etc/sudoers.d/cloud-distro
+          apt-get clean
+          rm -rf /var/lib/apt/lists/* /var/cache/apt/* /usr/share/doc/* /usr/share/man/* /tmp/*
+          EOF
+
+          mkdir -p dist
+          (
+              cd "${TARGET_DIR}"
+              sudo tar --numeric-owner --exclude='proc/*' --exclude='sys/*' --exclude='dev/*' -czf "${GITHUB_WORKSPACE}/dist/clouddistro-${DIST_VERSION}.tar.gz" .
+          )
+          cp "dist/clouddistro-${DIST_VERSION}.tar.gz" "dist/clouddistro-${DIST_VERSION}.wsl"
+          (cd dist && sha256sum "clouddistro-${DIST_VERSION}.tar.gz" "clouddistro-${DIST_VERSION}.wsl" > "clouddistro-${DIST_VERSION}.sha256")
+          sudo rm -rf "${TARGET_DIR}"
 
       - name: Verify package contents
         shell: bash

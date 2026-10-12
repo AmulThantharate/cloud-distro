@@ -22,14 +22,4 @@ Vagrant.configure("2") do |config|
   end
 
   config.vm.synced_folder ".", "/vagrant", disabled: false
-
-  # Build CloudDistro WSL2 rootfs automatically inside the clean VM
-  config.vm.provision "shell", inline: <<-SHELL
-    set -euo pipefail
-    echo "==> [Vagrant] Building CloudDistro WSL2 distro..."
-    cd /vagrant
-    chmod +x build.sh rootfs/usr/libexec/cloud-distro-oobe
-    sudo ./build.sh
-    echo "==> [Vagrant] Build complete! Check ./dist/ for the .wsl and .tar.gz assets."
-  SHELL
 end
