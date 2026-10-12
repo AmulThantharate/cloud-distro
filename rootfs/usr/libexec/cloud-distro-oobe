@@ -1,0 +1,11 @@
+#!/bin/bash
+set -euo pipefail
+while :; do
+  read -r -p 'Create CloudDistro username: ' username
+  [[ "$username" =~ ^[a-z_][a-z0-9_-]*$ ]] || { echo 'Use lowercase letters, digits, _ or -; begin with a letter or _.'; continue; }
+  getent passwd "$username" >/dev/null && { echo 'That username already exists.'; continue; }
+  break
+done
+useradd --uid 1000 --create-home --shell /bin/bash --groups sudo "$username"
+passwd "$username"
+install -d -m 0700 -o "$username" -g "$username" "/home/$username/.config"

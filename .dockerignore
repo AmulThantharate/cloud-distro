@@ -1,0 +1,9 @@
+.git
+.github
+dist
+.release/*.key
+.release/*.pem
+*.wsl
+*.tar.gz
+*.sig
+*.sbom.json

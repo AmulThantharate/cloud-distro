@@ -1,0 +1,2 @@
+CloudDistro: use `sudo apt update && sudo apt upgrade` for Debian updates.
+Cloud credentials belong in your user profile, never in this image.

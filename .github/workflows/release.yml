@@ -1,0 +1,53 @@
+name: build-test-release
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+    tags: ['v*.*.*']
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  lint:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Lint Dockerfile
+        run: docker run --rm -i hadolint/hadolint:v2.12.0 < Dockerfile
+
+  build_test_scan_package:
+    needs: lint
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Verify release locks
+        run: |
+          test -f .release/base.env
+      - name: Build amd64 image
+        shell: bash
+        run: |
+          set -euo pipefail
+          source .release/base.env
+          docker buildx build --platform linux/amd64 --load --build-arg BASE_IMAGE="$BASE_IMAGE" -t clouddistro:${GITHUB_SHA} .
+      - name: Static image smoke test
+        run: |
+          docker run --rm --entrypoint bash clouddistro:${GITHUB_SHA} -c 'test -f /etc/wsl.conf; test -f /etc/os-release; command -v systemctl git curl jq python3 pipx'
+      - name: Export, package and create checksums
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          cid="$(docker create clouddistro:${GITHUB_SHA})"
+          docker export "$cid" | gzip -n > dist/clouddistro-${GITHUB_REF_NAME}.tar.gz
+          docker rm "$cid"
+          cp dist/clouddistro-${GITHUB_REF_NAME}.tar.gz dist/clouddistro-${GITHUB_REF_NAME}.wsl
+          (cd dist && sha256sum clouddistro-${GITHUB_REF_NAME}.tar.gz clouddistro-${GITHUB_REF_NAME}.wsl > clouddistro-${GITHUB_REF_NAME}.sha256)
+          tar -tzf dist/clouddistro-${GITHUB_REF_NAME}.tar.gz | grep -E '^etc/wsl.conf$'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: clouddistro-${{ github.ref_name }}
+          path: dist/

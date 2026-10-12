@@ -1,0 +1,11 @@
+{
+  "profiles": [
+    {
+      "name": "CloudDistro",
+      "commandline": "wsl.exe -d CloudDistro",
+      "startingDirectory": "%USERPROFILE%",
+      "fontFace": "Cascadia Mono",
+      "colorScheme": "Campbell"
+    }
+  ]
+}

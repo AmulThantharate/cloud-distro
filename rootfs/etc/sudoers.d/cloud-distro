@@ -1,0 +1,4 @@
+# OOBE-created members of sudo authenticate with their own password.
+%sudo ALL=(ALL:ALL) ALL
+Defaults use_pty
+Defaults passwd_timeout=5

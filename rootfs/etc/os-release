@@ -1,0 +1,9 @@
+PRETTY_NAME="CloudDistro 0.1"
+NAME="CloudDistro"
+VERSION_ID="0.1"
+VERSION="0.1 (Debian 13 trixie)"
+ID=clouddistro
+ID_LIKE=debian
+HOME_URL="https://github.com/AmulThantharate/cloud-distro"
+SUPPORT_URL="https://github.com/AmulThantharate/cloud-distro/issues"
+BUG_REPORT_URL="https://github.com/AmulThantharate/cloud-distro/issues"

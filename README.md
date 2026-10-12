@@ -8,8 +8,17 @@ CloudDistro is an amd64 Debian 13 (trixie) WSL2 root filesystem for cloud and De
 
 **WSL baseline.** Microsoft’s current custom-distribution format requires WSL **2.4.4 or newer**. The supported primary installation command is `wsl --install --from-file clouddistro-<version>.wsl`; `wsl --import` remains the compatibility fallback. Day 4 implements the Microsoft distribution configuration, and Day 14 covers publishing.
 
+## Build Methods Overview
+
+See **[BUILD_METHODS.md](BUILD_METHODS.md)** for detailed side-by-side instructions:
+- **Production Method 1 (With Docker)**: Builds a digest-pinned, security-scanned, OOBE-configured Debian 13 rootfs using Docker Buildx and container export.
+- **Production Method 2 (Without Docker — `debootstrap`)**: The official Debian/Canonical method. Cryptographically bootstraps a clean Debian 13 rootfs with GPG keyrings and integrates WSL2 OOBE and systemd natively.
+- **Fast Prototyping (Docker Quick Export)**: Runs an interactive container and exports it directly via `docker export <cid> | gzip > distro.tar.gz`.
+- **Ultra-Minimal (Alpine Minirootfs)**: Directly imports official Alpine rootfs tarballs (~15 MB) into WSL.
+
 ## Contents
 
+- [Build Methods (With & Without Docker)](BUILD_METHODS.md)
 - [Day 1 — Host and immutable base](docs/day-01/README.md)
 - [Day 2 — Hardened Debian layer](docs/day-02/README.md)
 - [Day 3 — systemd and first import](docs/day-03/README.md)
@@ -29,7 +38,8 @@ CloudDistro is an amd64 Debian 13 (trixie) WSL2 root filesystem for cloud and De
 
 ```text
 cloud-distro/
-├── Dockerfile
+├── BUILD_METHODS.md          # Guide: With Docker vs. Without Docker (debootstrap)
+├── Vagrantfile               # Isolated Ubuntu 24.04 VM builder environment
 ├── .dockerignore
 ├── .release/                 # committed immutable base/tool locks; no credentials
 ├── rootfs/etc/{wsl.conf,wsl-distribution.conf,os-release,issue,motd}
