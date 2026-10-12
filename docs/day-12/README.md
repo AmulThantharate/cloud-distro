@@ -6,12 +6,10 @@ Create a deterministic gzip archive, checksum, SBOM and signature. Done means a 
 
 ## Steps
 
-1. **[Docker Build]**
+1. **[Vagrant / Native Build]**
    ```bash
-   VERSION="$(git describe --tags --always --dirty)"
-   cid="$(docker create clouddistro:dev)"; docker export "$cid" | gzip -n > "dist/clouddistro-${VERSION}.tar.gz"; docker rm "$cid"
-   cp "dist/clouddistro-${VERSION}.tar.gz" "dist/clouddistro-${VERSION}.wsl"
-   (cd dist && sha256sum "clouddistro-${VERSION}.tar.gz" "clouddistro-${VERSION}.wsl" sbom.spdx.json > "clouddistro-${VERSION}.sha256")
+   VERSION="$(git describe --tags --always --dirty 2>/dev/null || echo v0.1.0)"
+   DIST_VERSION="${VERSION}" sudo -E ./build.sh
    cosign sign-blob --yes --output-signature "dist/clouddistro-${VERSION}.tar.gz.sig" "dist/clouddistro-${VERSION}.tar.gz"
    ```
 2. **[Windows PowerShell]**

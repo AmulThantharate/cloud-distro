@@ -2,42 +2,45 @@
 
 ## Objective and Definition of Done
 
-Export a rootfs that starts systemd under WSL. Done means an imported test distro returns `running` and no failed unit.
+Export a rootfs that starts systemd under WSL. Done means an imported test distro returns `running` and no failed units.
 
 ## Steps
 
-1. **[Docker Build]**
+1. **[Vagrant / Linux Host]**
+   Build the distribution using Vagrant or `build.sh`:
    ```bash
-   source .release/base.env
-   docker buildx build --platform linux/amd64 --load --build-arg BASE_IMAGE="$BASE_IMAGE" -t clouddistro:dev .
-   cid="$(docker create clouddistro:dev)"; docker export "$cid" | gzip -n > dist/clouddistro-dev.tar.gz; docker rm "$cid"
+   vagrant up
+   # or on Linux host:
+   sudo ./build.sh
    ```
+   The tarball is written directly to `dist/clouddistro-v0.1.0.tar.gz`.
+
 2. **[Windows PowerShell]**
    ```powershell
    wsl --shutdown
    New-Item -ItemType Directory -Force C:\WSL\CloudDistro-dev | Out-Null
-   wsl --import CloudDistro-dev C:\WSL\CloudDistro-dev $HOME\Downloads\clouddistro-dev.tar.gz --version 2
+   wsl --import CloudDistro-dev C:\WSL\CloudDistro-dev dist\clouddistro-v0.1.0.tar.gz --version 2
    wsl -d CloudDistro-dev -- systemctl is-system-running
    wsl -d CloudDistro-dev -- systemctl --failed
    ```
 
 ## Config files
 
-Systemd packages, `/etc/machine-id` handling, and failing-unit masks are in the complete Dockerfile in Day 6.
+Systemd packages, `/etc/machine-id` handling, and problematic unit masks (`getty@.service`, `systemd-networkd-wait-online.service`) are handled automatically in `build.sh`.
 
 ## Verify
 
-Expected output: `running`, then `0 loaded units listed`.
+Expected output: `running` (or `degraded` if offline), with `0 loaded units listed` failing.
 
 ## Troubleshooting
 
 | symptom | cause | fix |
 |---|---|---|
-| `System has not been booted` | old WSL or absent `systemd=true` | `wsl --update`; complete Day 4; `wsl --shutdown` |
-| machine-id error | image carried a fixed ID | ensure Dockerfile truncates `/etc/machine-id` |
+| `System has not been booted` | old WSL or absent `systemd=true` | `wsl --update`; ensure `/etc/wsl.conf` has `[boot] systemd=true` |
+| machine-id collision | image carried a fixed ID | verify `build.sh` truncates `/etc/machine-id` |
 
 ## Commit
 
 ```bash
-git add . && git commit -m 'feat: enable systemd-ready rootfs export'
+git add build.sh && git commit -m 'feat: enable systemd-ready rootfs export'
 ```

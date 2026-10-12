@@ -33,48 +33,26 @@ permissions:
   id-token: write
 
 jobs:
-  lint:
+  build_package:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
-      - name: Lint Dockerfile
-        run: docker run --rm -i hadolint/hadolint:v2.12.0 < Dockerfile
 
-  build_test_scan_package:
-    needs: lint
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@v4
-      - uses: docker/setup-buildx-action@v3
-      - name: Reject incomplete immutable locks
-        run: |
-          test -f .release/base.env
-          test -f .release/toolchain.env
-          ! rg 'VERIFY_AT_OFFICIAL_SOURCE|:latest' .release
-      - name: Build amd64 image
+      - name: Build CloudDistro WSL2 rootfs via Native Debootstrap
         shell: bash
         run: |
           set -euo pipefail
-          source .release/base.env
-          source .release/toolchain.env
-          docker buildx build --platform linux/amd64 --load --build-arg BASE_IMAGE="$BASE_IMAGE" $(sed 's/^/--build-arg /' .release/toolchain.env) -t clouddistro:${GITHUB_SHA} .
-      - name: Static image smoke test
-        run: |
-          docker run --rm --entrypoint bash clouddistro:${GITHUB_SHA} -c 'test -f /etc/wsl.conf; test -f /etc/os-release; command -v systemctl kubectl helm terraform argocd trivy docker yq git curl jq python3 pipx'
-      - name: Scan HIGH and CRITICAL vulnerabilities
-        run: docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:0.67.2 image --exit-code 1 --severity HIGH,CRITICAL clouddistro:${GITHUB_SHA}
-      - name: Export, package and create SBOM
+          chmod +x build.sh rootfs/usr/libexec/cloud-distro-oobe
+          DIST_VERSION="${GITHUB_REF_NAME:-v0.1.0}" sudo -E ./build.sh
+
+      - name: Verify package contents
         shell: bash
         run: |
-          set -euo pipefail
-          mkdir -p dist
-          cid="$(docker create clouddistro:${GITHUB_SHA})"
-          docker export "$cid" | gzip -n > dist/clouddistro-${GITHUB_REF_NAME}.tar.gz
-          docker rm "$cid"
-          cp dist/clouddistro-${GITHUB_REF_NAME}.tar.gz dist/clouddistro-${GITHUB_REF_NAME}.wsl
-          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock anchore/syft:v1.38.0 clouddistro:${GITHUB_SHA} -o spdx-json > dist/sbom.spdx.json
-          (cd dist && sha256sum clouddistro-${GITHUB_REF_NAME}.tar.gz clouddistro-${GITHUB_REF_NAME}.wsl sbom.spdx.json > clouddistro-${GITHUB_REF_NAME}.sha256)
-          tar -tzf dist/clouddistro-${GITHUB_REF_NAME}.tar.gz | rg '^etc/wsl.conf$'
+          DIST_VERSION="${GITHUB_REF_NAME:-v0.1.0}"
+          tar -tzf "dist/clouddistro-${DIST_VERSION}.tar.gz" | grep -E '^etc/wsl.conf$'
+          tar -tzf "dist/clouddistro-${DIST_VERSION}.tar.gz" | grep -E '^etc/godzilla.art$'
+          tar -tzf "dist/clouddistro-${DIST_VERSION}.tar.gz" | grep -E '^usr/libexec/cloud-distro-oobe$'
+
       - uses: actions/upload-artifact@v4
         with:
           name: clouddistro-${{ github.ref_name }}

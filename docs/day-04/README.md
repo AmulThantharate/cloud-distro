@@ -104,7 +104,7 @@ wsl -d CloudDistro -- test "$(readlink /usr/bin/wslpath)" = /init
 wsl -d CloudDistro -- wslpath -w /tmp
 wsl -d CloudDistro -- cmd.exe /c ver
 ```
-Expected: `1000`, a `wslpath` Windows UNC path, and a Windows version string. `wslpath` is a WSL multi-call entrypoint and must be `/usr/bin/wslpath -> /init`; add that symlink in the Dockerfile if the base image does not contain it.
+Expected: `1000`, a `wslpath` Windows UNC path, and a Windows version string. `wslpath` is a WSL multi-call entrypoint and must be `/usr/bin/wslpath -> /init`; this symlink is created automatically by `build.sh`.
 
 ## Troubleshooting
 

@@ -6,7 +6,7 @@ Brand the distribution and give the OOBE-created user passworded sudo and comman
 
 ## Steps
 
-1. **[Linux Host]** Create the files below. The Dockerfile copies `rootfs/` only after tools are installed.
+1. **[Linux Host]** Create the files below. The builder script `build.sh` overlays `rootfs/` onto the bootstrapped system.
 
 ## Config files
 
@@ -168,7 +168,7 @@ EOF
 ## Verify
 
 ```bash
-docker run --rm clouddistro:dev visudo -cf /etc/sudoers.d/cloud-distro
+sudo visudo -cf rootfs/etc/sudoers.d/cloud-distro
 ```
 Expected: `parsed: OK`.
 

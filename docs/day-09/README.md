@@ -6,13 +6,13 @@ Apply a small CIS-style baseline and produce failing vulnerability gates plus an
 
 ## Steps
 
-1. **[Linux Host]**
+1. **[Linux Host / Vagrant]**
+   Scan the exported rootfs archive directly using Trivy and Syft:
    ```bash
-   docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:0.67.2 image --exit-code 1 --severity HIGH,CRITICAL clouddistro:dev
-   docker run --rm -v /var/run/docker.sock:/var/run/docker.sock anchore/syft:v1.38.0 clouddistro:dev -o spdx-json > dist/sbom.spdx.json
+   trivy rootfs --exit-code 1 --severity HIGH,CRITICAL dist/clouddistro-v0.1.0.tar.gz
+   syft dist/clouddistro-v0.1.0.tar.gz -o spdx-json > dist/sbom.spdx.json
    ```
-   Before adopting these scanner image tags, verify their immutable digests and signatures at the official Trivy and Syft release pages; production CI must pin `image@sha256`, not a mutable tag.
-2. **[Docker Build]** Keep only required packages, passworded sudo, `use_pty`, unattended security upgrades, no SSH daemon, and no setuid additions beyond Debian defaults.
+2. **[Hardening]** Keep only required packages, passworded sudo, `use_pty`, unattended security upgrades, no SSH daemon, and no setuid additions beyond Debian defaults.
 
 ## Config files
 
