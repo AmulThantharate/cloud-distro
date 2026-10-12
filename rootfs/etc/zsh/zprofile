@@ -1,0 +1,7 @@
+# /etc/zsh/zprofile: system-wide .zprofile file for zsh(1).
+# Sourced for login shells in CloudDistro.
+
+# Load standard system profile and /etc/profile.d scripts
+if [ -f /etc/profile ]; then
+    . /etc/profile
+fi

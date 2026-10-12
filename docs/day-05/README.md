@@ -119,6 +119,50 @@ if [ ! -f "$_STAMP_FILE" ] || [ "$(cat "$_STAMP_FILE" 2>/dev/null)" != "$_TODAY"
 fi
 EOF
    chmod 0755 rootfs/etc/profile.d/99-daily-banner.sh
+
+   # Configure Zsh as the default shell and supply user defaults
+   mkdir -p rootfs/etc/default rootfs/etc/skel rootfs/etc/zsh
+   cat << 'EOF' > rootfs/etc/default/useradd
+# Default settings for useradd(8) in CloudDistro
+SHELL=/bin/zsh
+GROUP=100
+HOME=/home
+INACTIVE=-1
+EXPIRE=
+SKEL=/etc/skel
+CREATE_MAIL_SPOOL=no
+EOF
+   chmod 0644 rootfs/etc/default/useradd
+
+   cat << 'EOF' > rootfs/etc/skel/.zshrc
+# CloudDistro default .zshrc
+autoload -U compinit && compinit -d "${XDG_CACHE_HOME:-$HOME/.cache}/.zcompdump"
+HISTFILE="$HOME/.zsh_history"
+HISTSIZE=10000
+SAVEHIST=10000
+setopt APPEND_HISTORY
+setopt SHARE_HISTORY
+setopt HIST_IGNORE_DUPS
+setopt HIST_IGNORE_SPACE
+bindkey -e
+bindkey "^[[H" beginning-of-line
+bindkey "^[[F" end-of-line
+bindkey "^[[3~" delete-char
+autoload -U colors && colors
+PROMPT='%F{green}%n@%m%f:%F{cyan}%~%f%# '
+alias ls='ls --color=auto'
+alias ll='ls -la'
+alias grep='grep --color=auto'
+EOF
+   chmod 0644 rootfs/etc/skel/.zshrc
+
+   cat << 'EOF' > rootfs/etc/zsh/zprofile
+# /etc/zsh/zprofile: source /etc/profile so PATH and /etc/profile.d scripts execute in zsh
+if [ -f /etc/profile ]; then
+    . /etc/profile
+fi
+EOF
+   chmod 0644 rootfs/etc/zsh/zprofile
    ```
 
 ## Verify
@@ -133,10 +177,11 @@ Expected: `parsed: OK`.
 | symptom | cause | fix |
 |---|---|---|
 | sudo needs no password | an unsafe drop-in remains | remove it; use the file above |
-| completions absent | interactive bash not sourced | install `bash-completion`; source `/usr/share/bash-completion/bash_completion` |
+| completions absent | interactive zsh/bash not sourced | install `bash-completion` / `zsh`; verify `.zshrc` or `/etc/profile.d` |
+| banner not displaying | shell not interactive or terminal check failed | verify `[ -t 1 ]` in an interactive shell session |
 
 ## Commit
 
 ```bash
-git add rootfs && git commit -m 'feat: add CloudDistro identity and sudo policy'
+git add rootfs && git commit -m 'feat: add CloudDistro identity, zsh default shell, and sudo policy'
 ```

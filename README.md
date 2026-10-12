@@ -43,7 +43,10 @@ cloud-distro/
 ├── .dockerignore
 ├── .release/                 # committed immutable base/tool locks; no credentials
 ├── rootfs/etc/{wsl.conf,wsl-distribution.conf,os-release,issue,motd,godzilla.art}
+├── rootfs/etc/default/useradd
 ├── rootfs/etc/profile.d/{00-first-run.sh,99-daily-banner.sh}
+├── rootfs/etc/skel/.zshrc
+├── rootfs/etc/zsh/zprofile
 ├── rootfs/usr/lib/wsl/{cloud-distro.ico,terminal-profile.json}
 ├── rootfs/usr/libexec/cloud-distro-oobe
 ├── rootfs/etc/sudoers.d/cloud-distro

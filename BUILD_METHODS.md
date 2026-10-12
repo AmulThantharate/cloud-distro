@@ -55,7 +55,7 @@ When you need an ad-hoc custom distro immediately:
 
 2. **Customize inside container:**
    ```bash
-   docker exec -it my-distro bash -c "apt-get update && apt-get install -y sudo git curl systemd && useradd -m -s /bin/bash devuser && echo 'devuser:password123' | chpasswd && usermod -aG sudo devuser"
+   docker exec -it my-distro bash -c "apt-get update && apt-get install -y sudo git curl systemd zsh && useradd -m -s /bin/zsh devuser && echo 'devuser:password123' | chpasswd && usermod -aG sudo devuser"
    ```
 
 3. **Export the container filesystem:**
@@ -108,7 +108,7 @@ apt-get update
 apt-get install -y --no-install-recommends \
     bash-completion ca-certificates curl dbus git iproute2 iputils-ping \
     jq locales make openssh-client pipx python3 python3-pip sudo \
-    systemd systemd-sysv tmux tzdata unattended-upgrades unzip vim-tiny xz-utils
+    systemd systemd-sysv tmux tzdata unattended-upgrades unzip vim-tiny xz-utils zsh
 
 # Configure UTF-8 Locale
 sed -i 's/^# *C.UTF-8 UTF-8/C.UTF-8 UTF-8/' /etc/locale.gen && locale-gen

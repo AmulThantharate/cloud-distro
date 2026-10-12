@@ -49,7 +49,7 @@ ENV DEBIAN_FRONTEND=noninteractive LANG=C.UTF-8 LC_ALL=C.UTF-8 TZ=Etc/UTC
 RUN apt-get update && apt-get install -y --no-install-recommends \
     bash-completion ca-certificates curl dbus git iproute2 iputils-ping jq locales \
     make openssh-client python3 python3-pip pipx sudo systemd systemd-sysv tzdata \
-    unattended-upgrades vim-tiny tmux xz-utils gzip gpg unzip && \
+    unattended-upgrades vim-tiny tmux xz-utils gzip gpg unzip zsh && \
     sed -i 's/^# *C.UTF-8 UTF-8/C.UTF-8 UTF-8/' /etc/locale.gen && locale-gen && \
     systemctl mask getty@.service systemd-networkd-wait-online.service && \
     truncate -s 0 /etc/machine-id && ln -sf /etc/machine-id /var/lib/dbus/machine-id && \

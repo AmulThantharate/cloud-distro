@@ -6,6 +6,6 @@ while :; do
   getent passwd "$username" >/dev/null && { echo 'That username already exists.'; continue; }
   break
 done
-useradd --uid 1000 --create-home --shell /bin/bash --groups sudo "$username"
+useradd --uid 1000 --create-home --shell /bin/zsh --groups sudo "$username"
 passwd "$username"
 install -d -m 0700 -o "$username" -g "$username" "/home/$username/.config"
